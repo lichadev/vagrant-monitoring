@@ -1,9 +1,18 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 $box_image = "ubuntu/bionic64"
+$user = "vagrant"
 $install_docker = <<SCRIPT
 curl -fsSL https://get.docker.com -o get-docker.sh
 sudo sh get-docker.sh
+SCRIPT
+$config_docker = <<SCRIPT
+sudo useradd -m #{$user} -s /bin/bash 
+sudo groupadd docker
+sudo usermod -aG docker #{$user}
+newgrp docker
+sudo systemctl enable docker.service
+sudo systemctl enable containerd.service
 SCRIPT
 $launch_monitoring = <<SCRIPT
   git clone https://github.com/cristianpb/telegraf-influxdb-grafana-docker.git
@@ -27,6 +36,7 @@ Vagrant.configure("2") do |config|
     
     config.vm.provision "shell", inline: <<-SHELL
         #{$install_docker}
+        #{$config_docker}
         #{$launch_monitoring}
     SHELL
 end    
